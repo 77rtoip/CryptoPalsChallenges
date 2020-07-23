@@ -1,9 +1,6 @@
-/*
-https://cryptopals.com/sets/1/challenges/3
-*/
-
 #include <iostream>
 #include <map>
+#include <cmath>
 
 using std::cout, std::string;
 
@@ -15,7 +12,7 @@ uint8_t toChar(uint8_t);
 void charwiseXor(uint8_t*, uint8_t*, uint8_t);
 dmap_t englishFrequencyMap();
 dmap_t calculateFrequencies(uint8_t*);
-double frequencyScoring(imap_t);
+double frequencyScoring(dmap_t);
 
 int main()
 {
@@ -33,16 +30,12 @@ int main()
 
     uint8_t* output = new uint8_t[i/2 + 1];
 
-/*    for (uint8_t c{32}; c < 127; ++c) {
+    for (uint8_t c{32}; c < 127; ++c) {
         charwiseXor(inputChars, output, c);
         cout << c << ": " << output << '\n';
-    }*/
-
-
-
-    dmap_t frequencies = calculateFrequencies(inputChars);
-    for (dmap_t::iterator it=frequencies.begin(); it!=frequencies.end(); ++it) {
-        cout << it->first << ": " << it->second << '\n';
+        dmap_t freq = calculateFrequencies(output);
+        double score = frequencyScoring(freq);
+        cout << "Score: " << score << '\n';
     }
 
     delete[] inputChars;
@@ -53,21 +46,18 @@ int main()
 
 // Convert character to uint8_t (unsigned char) hex value
 // Works properly only for valid hex characters as input
-
 uint8_t toBin(uint8_t c) {
     return (c-'0')*(c<='9')+(toupper(c)-'A'+10)*(c>'9');
 }
 
 // Convert uint8_t hex value to unsigned char - for print
 // No valid input checking
-
 uint8_t toChar(uint8_t h) {
     return (h+'0')*(h<=9)+(h+'a'-10)*(h>9);
 }
 
 // Output string MUST be the same length as input,
-// otherwise the result may be unexpected
-
+// otherwise the result will be meaningless
 void charwiseXor(uint8_t* input, uint8_t* output, uint8_t c) {
     int i{0};
     for (; input[i]; ++i) {
@@ -76,8 +66,10 @@ void charwiseXor(uint8_t* input, uint8_t* output, uint8_t c) {
     output[i] = 0;
 }
 
-std::map<char, double> englishFrequencyMap() {
-    std::map<char, double> m;
+
+// Creating frequency map for English language
+dmap_t englishFrequencyMap() {
+    dmap_t m;
     const double freqMap[] {8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966,\
     0.153, 0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758,\
     0.978, 2.360, 0.150, 1.974, 0.074};
@@ -88,8 +80,9 @@ std::map<char, double> englishFrequencyMap() {
     return m;
 }
 
-std::map<char, double> calculateFrequencies(uint8_t* input) { // input must be zero-terminated
-    std::map<char, int> countMap;
+
+dmap_t calculateFrequencies(uint8_t* input) { // input must be zero-terminated
+    imap_t countMap;
     int i{0};
     for (; input[i]; ++i) {
         char key = tolower(input[i]);
@@ -102,14 +95,25 @@ std::map<char, double> calculateFrequencies(uint8_t* input) { // input must be z
     }
     int inputLength = i;
 
-    std::map<char, double> outputMap;
+    dmap_t outputMap;
     for (std::map<char, int>::iterator it=countMap.begin(); it!=countMap.end(); ++it) {
-        outputMap[it->first] = (double)(it->second/inputLength);
+        outputMap[it->first] = double(double(it->second)/inputLength);
     }
     return outputMap;
 }
 
-double frequencyScoring(int l) {
-    std::map<char, double> frequencies = englishFrequencyMap();
-
+double frequencyScoring(dmap_t inputFreq) {
+    dmap_t referenceFrequencies = englishFrequencyMap();
+    double score = 0.0;
+    for (std::map<char, double>::iterator it=inputFreq.begin(); it!=inputFreq.end(); ++it) {
+        double a = inputFreq[it->first];
+        if (referenceFrequencies.count(it->first) >= 1) {
+            double b = referenceFrequencies[it->first];
+            score += (a-b)*(a-b);
+        }
+        else {
+            score += a*a;
+        }
+    }
+    return sqrt(score);
 }
