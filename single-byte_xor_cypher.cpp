@@ -1,24 +1,28 @@
 #include <iostream>
 #include <map>
+#include <vector>
 #include <cmath>
+#include <string>
+#include <limits>
 
 using std::cout, std::string;
 
-typedef std::map<char, double> dmap_t;
+// Types definitions
 typedef std::map<char, int> imap_t;
+typedef std::vector<char> charVec;
 
-uint8_t toBin(uint8_t);
-uint8_t toChar(uint8_t);
-void charwiseXor(uint8_t*, uint8_t*, uint8_t);
-dmap_t englishFrequencyMap();
-dmap_t calculateFrequencies(uint8_t*);
-double frequencyScoring(dmap_t);
+// Functions declarations
+char toBin(const char &);
+char toChar(const char &);
+void charwiseXor(const char*, char*, const char &);
+charVec frequencyVector(const char*, const int &);
+int frequencyScoring(const charVec &);
 
 int main()
 {
-    string input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
-    int inputBytesCount = input.length()/2;
-    uint8_t* inputChars = new uint8_t[inputBytesCount + 1];
+    const string input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+    int inputCharsCount = input.length()/2;
+    char* inputChars = new char[inputCharsCount + 1];
 
     int i{0};
     for (; input[i]; i+=2) {
@@ -28,15 +32,28 @@ int main()
     inputChars[i/2] = 0;
     cout << inputChars << '\n';
 
-    uint8_t* output = new uint8_t[i/2 + 1];
+    char* output = new char[i/2 + 1];
 
-    for (uint8_t c{32}; c < 127; ++c) {
+    string optimalOutput;
+    char optimalLetter;
+    int minScore{std::numeric_limits<int>::max()};
+
+    for (char c{32}; c < 127; ++c) {
         charwiseXor(inputChars, output, c);
-        cout << c << ": " << output << '\n';
-        dmap_t freq = calculateFrequencies(output);
-        double score = frequencyScoring(freq);
-        cout << "Score: " << score << '\n';
+        // cout << c << ": " << output << '\n';
+        charVec freq = frequencyVector(output, inputCharsCount);
+        int score = frequencyScoring(freq);
+        if (score < minScore) {
+            minScore = score;
+            optimalOutput = string(output);
+            optimalLetter = c;
+        }
+        // cout << "Score: " << score << '\n';
     }
+
+    cout << "Decoded string: " << optimalOutput << '\n';
+    cout << "Cipher letter: " << optimalLetter << '\n';
+    cout << "Score: " << minScore << '\n';
 
     delete[] inputChars;
     delete[] output;
@@ -44,21 +61,22 @@ int main()
     return 0;
 }
 
-// Convert character to uint8_t (unsigned char) hex value
-// Works properly only for valid hex characters as input
-uint8_t toBin(uint8_t c) {
+// Converts binary value to hex digit
+// Does not check if input is valid hex character
+char toBin(const char &c) {
     return (c-'0')*(c<='9')+(toupper(c)-'A'+10)*(c>'9');
 }
 
-// Convert uint8_t hex value to unsigned char - for print
-// No valid input checking
-uint8_t toChar(uint8_t h) {
+// Converts char hex value to its binary value
+// Does not check if input is valid
+char toChar(const char &h) {
     return (h+'0')*(h<=9)+(h+'a'-10)*(h>9);
 }
 
-// Output string MUST be the same length as input,
-// otherwise the result will be meaningless
-void charwiseXor(uint8_t* input, uint8_t* output, uint8_t c) {
+/* Calculating "charwise Xor" on input string
+Input and output strings must be the same length
+Input must be zero-terminated */
+void charwiseXor(const char* input, char* output, const char &c) {
     int i{0};
     for (; input[i]; ++i) {
         output[i] = input[i] ^ c;
@@ -66,54 +84,56 @@ void charwiseXor(uint8_t* input, uint8_t* output, uint8_t c) {
     output[i] = 0;
 }
 
+// Assuming input is zero-terminated
+charVec frequencyVector(const char* input, const int &inputLength) {
 
-// Creating frequency map for English language
-dmap_t englishFrequencyMap() {
-    dmap_t m;
-    const double freqMap[] {8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966,\
-    0.153, 0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758,\
-    0.978, 2.360, 0.150, 1.974, 0.074};
-    char c{'a'};
-    for (; c<='z'; ++c) {
-        m[c] = freqMap[c-'a'];
-    }
-    return m;
-}
+    imap_t freqMap;
 
-
-dmap_t calculateFrequencies(uint8_t* input) { // input must be zero-terminated
-    imap_t countMap;
-    int i{0};
-    for (; input[i]; ++i) {
+    for (int i{0}; i < inputLength; ++i) {
         char key = tolower(input[i]);
-        if (countMap.count(key) == 0) {
-            countMap[key] = 1;
+        if (freqMap.count(key) == 0) {
+            freqMap[key] = 1;
         }
         else {
-            ++countMap[key];
+            ++freqMap[key];
         }
     }
-    int inputLength = i;
 
-    dmap_t outputMap;
-    for (std::map<char, int>::iterator it=countMap.begin(); it!=countMap.end(); ++it) {
-        outputMap[it->first] = double(double(it->second)/inputLength);
+    charVec result;
+
+    while (!freqMap.empty()) {
+        int maxValue{0};
+        char keyMaxValue;
+        for (auto it = freqMap.begin(); it != freqMap.end(); ++it) {
+            if (it->second > maxValue) {
+                maxValue = it->second;
+                keyMaxValue = it->first;
+            }
+        }
+        result.push_back(keyMaxValue);
+        freqMap.erase(keyMaxValue);
     }
-    return outputMap;
+
+    return result;
 }
 
-double frequencyScoring(dmap_t inputFreq) {
-    dmap_t referenceFrequencies = englishFrequencyMap();
-    double score = 0.0;
-    for (std::map<char, double>::iterator it=inputFreq.begin(); it!=inputFreq.end(); ++it) {
-        double a = inputFreq[it->first];
-        if (referenceFrequencies.count(it->first) >= 1) {
-            double b = referenceFrequencies[it->first];
-            score += (a-b)*(a-b);
+int frequencyScoring(const charVec &inputVector) {
+
+    // Constant for relative letters frequency in English
+    const string referenceFrequencyString = " etaoinsrhdlucmfywgpbvkxqjz";
+
+    int score{0};
+    for (auto it=inputVector.begin(); it!=inputVector.end(); ++it) {
+        int currentIndex = it - inputVector.begin();
+        int lastReferenceIndex = referenceFrequencyString.length();
+        char currentChar = tolower(*it);
+        size_t referenceIndex = referenceFrequencyString.find(currentChar);
+        if (referenceIndex != std::string::npos) {
+            score += (currentIndex - referenceIndex) * (currentIndex - referenceIndex);
         }
         else {
-            score += a*a;
+            score += (currentIndex - lastReferenceIndex) * (currentIndex - lastReferenceIndex);
         }
     }
-    return sqrt(score);
+    return score;
 }
