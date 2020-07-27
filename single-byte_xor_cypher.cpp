@@ -117,6 +117,8 @@ charVec frequencyVector(const char* input, const int &inputLength) {
     return result;
 }
 
+/* Calculates frequency scoring basing on relative frequency of letters in string
+in comparision with reference frequency of space and letters in English language*/
 int frequencyScoring(const charVec &inputVector) {
 
     // Constant for relative letters frequency in English
