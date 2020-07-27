@@ -1,11 +1,10 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include <cmath>
 #include <string>
 #include <limits>
 
-using std::cout, std::string;
+using std::cin, std::cout, std::string;
 
 // Types definitions
 typedef std::map<char, int> imap_t;
