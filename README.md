@@ -1,5 +1,5 @@
 # CryptoPalsChallenges
-# Single-byte XOR cipher
+## Single-byte XOR cipher
 
 https://cryptopals.com/sets/1/challenges/3
 
