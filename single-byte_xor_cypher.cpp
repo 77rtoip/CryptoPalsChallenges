@@ -7,7 +7,7 @@ int main()
     const char* hex_input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
 
     std::vector<char> char_input = hex_string_to_char_vector(hex_input);
-    std::cout << "Encoded string: " << vector_to_string(char_input) << '\n';
+    std::cout << "Encoded string: " << to_string(char_input) << '\n';
     std::vector<char> optimalOutput;
     char optimalLetter;
     int minScore{std::numeric_limits<int>::max()};
@@ -25,7 +25,7 @@ int main()
 
     }
 
-    std::cout << "Decoded string: " << vector_to_string(optimalOutput) << '\n';
+    std::cout << "Decoded string: " << to_string(optimalOutput) << '\n';
     std::cout << "Cipher letter: " << optimalLetter << '\n';
     std::cout << "Score: " << minScore << '\n';
 
