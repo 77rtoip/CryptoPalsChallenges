@@ -3,11 +3,8 @@
 #include <cstring>
 #include "crypto.h"
 
-
-/* Calculating "charwise Xor" on input string
-Input and output strings must be the same length
-Input must be zero-terminated */
 std::vector<char> charwiseXor(const std::vector<char> &input, const char &c) {
+
     std::vector<char> result;
     for (auto it = input.begin(); it != input.end(); ++it) {
         result.push_back(*it ^ c);
@@ -15,11 +12,9 @@ std::vector<char> charwiseXor(const std::vector<char> &input, const char &c) {
     return result;
 }
 
-// Assuming input is zero-terminated
 std::vector<char> frequencyVector(const std::vector<char> &input) {
 
     std::map<char, int> freqMap;
-
     for (auto it=input.begin(); it != input.end(); ++it) {
         char key = tolower(*it);
         if (freqMap.count(key) == 0) {
@@ -50,6 +45,7 @@ std::vector<char> frequencyVector(const std::vector<char> &input) {
 
 /* Calculates frequency scoring basing on relative frequency of letters in string
 in comparision with reference frequency of space and letters in English language*/
+
 int frequencyScoring(const charVec &inputVector) {
 
     // Constant for relative letters frequency in English
@@ -83,13 +79,7 @@ std::vector<char> hex_string_to_char_vector(const char* hex_input) {
     return result;
 }
 
-void print_vector(const std::vector<char> & input) {
-    for (auto it = input.begin(); it != input.end(); ++it) {
-        std::cout << *it;
-    }
-}
-
-std::string vector_to_string(const std::vector<char> &input) {
+std::string to_string(const std::vector<char> &input) {
     std::string result;
     for (auto it = input.begin(); it != input.end(); ++it) {
         result += *it;
